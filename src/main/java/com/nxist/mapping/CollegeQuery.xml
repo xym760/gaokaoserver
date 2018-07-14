@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处namespace需要指定dao接口-->
+<mapper namespace="com.nxist.dao.CollegeDao">
+    <select id="findCollegeByCollegeName" parameterType="string" resultType="College">
+        SELECT * FROM table_college WHERE name=#{collegeName}
+    </select>
+    
+    <select id="findCollegeByCollegeId" parameterType="int" resultType="College">
+        SELECT * FROM table_college WHERE collegeId=#{collegeId}
+    </select>
+    
+    <!-- 插入学校 -->  
+	<insert id="insertCollege" parameterType="College" useGeneratedKeys="true" keyProperty="collegeId" keyColumn="CollegeId">  
+        INSERT INTO table_college (CollegeId,Name,FormerName,Province,Grade,Property,DirectlyUnder,RunNature,
+        							Intro,Code,Ranking,Website,Telephone,Address,Mailbox)  
+              VALUES (#{collegeId},#{name},#{formerName},#{province},#{grade},#{property},
+                          #{directlyUnder},#{runNature},#{intro},#{code},#{ranking},
+                          #{website},#{telephone},#{address},#{mailbox})  
+	</insert>
+	
+	<!-- 修改学校名 -->
+	<update id="updateCollege" parameterType="com.nxist.model.College" useGeneratedKeys="true" keyProperty="collegeId" keyColumn="collegeId">
+        update table_college set Name=#{name},FormerName=#{formerName},Province=#{province},Grade=#{grade},Property=#{property},DirectlyUnder=#{directlyUnder},
+        RunNature=#{runNature},Intro=#{intro},Code=#{code},Ranking=#{ranking},Website=#{website},Telephone=#{telephone},Address=#{address},Mailbox=#{mailbox}
+         where CollegeId=#{collegeId}  
+	</update>
+	
+	<!--配置一个resultMap 指定返回的类型 -->
+    <resultMap id="college" type="College">
+        <id column="CollegeId" property="collegeId" />
+        <result column="Name" property="name" />
+        <result column="Province" property="province" />
+    </resultMap>
+	
+	<!-- 获取所有院校 -->
+	<select id="findAllCollege" resultMap="college">
+		select * from table_college
+	</select>
+	
+	<!-- 院校查询 -->
+    <select id="findAllCollegeLimit" parameterType="map" resultType="com.nxist.model.College">
+        select * from table_college where 1=1 
+        <if test="province != null and '' != province" >
+        	  and Province=#{province}
+     	</if>
+     	<if test="name != null and '' != name" >
+        	  and Name=#{name}
+     	</if> limit #{start},#{limit}
+    </select>
+	
+	<!-- 获取记录总数 -->
+    <select id="getCollegeSum" parameterType="map" resultType="int">
+        select count(*) from table_college where  1=1 
+        <if test="province != null and '' != province" >
+        	  and Province=#{province}
+     	</if>
+     	<if test="name != null and '' != name" >
+        	  and Name=#{name}
+     	</if>
+    </select>
+	
+	<!-- 获取用户关注的所有院校 -->
+	<select id="findAllCollectCollege" parameterType="int" resultMap="college">
+		select * from table_college where CollegeId in(select CollegeId from table_collect where UserId=#{userId})
+	</select>
+	
+	<!-- 查询某个话题 是否被某个用户点赞-->
+    <select id="isCollect" parameterType="int" resultType="int">
+        select count(CollectId) from table_collect where CollegeId=#{collegeId} and UserId=#{userId}
+    </select>
+	
+	<!-- 关注院校 -->
+	<insert id="collectCollege" parameterType="com.nxist.model.Collect" useGeneratedKeys="true" keyProperty="collectId" keyColumn="CollectId">
+        INSERT INTO table_collect (CollectId,UserId,CollegeId,MajorId,CollectDate)  
+              VALUES (#{collectId},#{userId},#{collegeId},#{majorId},#{collectDate}) 
+	</insert>
+	
+	<!-- 取消关注院校 -->
+    <delete id="cancelCollect" parameterType="int">  
+        DELETE FROM table_collect WHERE UserId=#{userId} and CollegeId=#{collegeId} 
+	</delete> 
+	
+	<!-- 查询指定大学的关注日期-->
+    <select id="findCollectDateByCollegeId" parameterType="int" resultType="string">
+        select CollectDate from table_collect where CollegeId=#{collegeId} and userId=#{userId}
+    </select>
+    
+    <!-- 删除学校 -->
+    <delete id="deleteCollege" parameterType="com.nxist.model.College">  
+        DELETE FROM table_college WHERE collegeId=#{collegeId} 
+	</delete>
+	
+	<!-- 通过collegeId删除关注 -->
+    <delete id="deleteCollectByCollegeId" parameterType="int">  
+        DELETE FROM table_collect WHERE CollegeId=#{collegeId} 
+	</delete>
+	
+	<!-- 查询在排名范围之内的学校-->
+    <select id="searchCollegeByRankRange" parameterType="map" resultType="com.nxist.model.College">
+        select * from table_college where Ranking &lt; #{big} and Ranking &gt; #{small} order by Ranking asc
+    </select>
+</mapper>

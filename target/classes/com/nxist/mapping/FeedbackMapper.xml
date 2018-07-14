@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处namespace需要指定dao接口 -->
+<mapper namespace="com.nxist.dao.FeedbackDao">
+
+	<!-- 消息查询 -->
+	<!-- 模糊查询     ${}符号表示sql使用拼接方式，这样会参数sql注入露点 -->
+    <select id="findAllFeedback" parameterType="int" resultType="com.nxist.model.FeedbackCustom">
+        select f.feedbackId feedbackId,u.userName userName, f.content content,f.picture picture,f.contact contact,f.feedbackDate feedbackDate,f.status status from table_feedback f,table_user u where f.userId=u.userId limit #{start},#{limit}
+    </select>
+    
+    <!-- 获取记录总数 -->
+    <select id="getFeedbackSum" resultType="int">
+        select count(*) from table_feedback 
+    </select>
+    
+    <!-- 插入不包含图片的消息并返回插入后的话题ID 
+    	useGeneratedKeys：必须设置为true，否则无法获取到主键id。
+		keyProperty：设置为POJO对象的主键id属性名称。
+		keyColumn：设置为数据库记录的主键id字段名称。--> 
+	<insert id="insertFeedbackWithoutPicture" parameterType="com.nxist.model.Feedback" useGeneratedKeys="true" keyProperty="feedbackId" keyColumn="feedbackId">
+        INSERT INTO table_feedback (feedbackId,userId,content,picture,contact,feedbackDate)  
+              VALUES (#{feedbackId},#{userId},#{content},#{picture},#{contact},#{feedbackDate})
+	</insert>
+	
+	<!-- 删除反馈 -->
+    <delete id="deleteFeedback" parameterType="int">  
+        DELETE FROM table_feedback WHERE feedbackId=#{feedbackId} 
+	</delete>
+	
+	<!-- 根据feedbackId查询某条消息 -->
+    <select id="findFeedbackByFeedbackId" parameterType="int" resultType="com.nxist.model.Feedback">
+        select * from table_feedback where feedbackId=#{feedbackId} 
+    </select>
+    
+    <!-- 修改信息 -->
+	<update id="updateFeedbackWithoutPicture" parameterType="com.nxist.model.Feedback" useGeneratedKeys="true" keyProperty="feedbackId" keyColumn="feedbackId">
+        update table_feedback set feedbackId=#{feedbackId},title=#{title}, 
+        picture=#{picture},content=#{content},feedbackDate=#{feedbackDate} where feedbackId=#{feedbackId}  
+	</update>
+	
+	<!-- 修改数据库中反馈图片文件名 -->
+	<update id="updatePicture" parameterType="com.nxist.model.Feedback" useGeneratedKeys="true" keyProperty="feedbackId" keyColumn="feedbackId">
+        update table_feedback set picture=#{picture} where feedbackId=#{feedbackId}  
+	</update>
+	
+	<!-- 审核反馈-->
+	<update id="auditFeedback" parameterType="int" useGeneratedKeys="true" keyProperty="feedbackId" keyColumn="feedbackId">
+        update table_feedback set status=1 where feedbackId=#{feedbackId}  
+	</update>
+	
+	<!-- 取消审核反馈-->
+	<update id="cancelAuditFeedback" parameterType="int" useGeneratedKeys="true" keyProperty="feedbackId" keyColumn="feedbackId">
+        update table_feedback set status=0 where feedbackId=#{feedbackId}  
+	</update>
+    
+</mapper>

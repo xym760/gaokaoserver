@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处namespace需要指定dao接口-->
+<mapper namespace="com.nxist.dao.MajorDao">
+	<!--配置一个resultMap 指定返回的类型 -->
+    <resultMap id="major" type="Major">
+        <id column="MajorId" property="majorId" />
+        <result column="MajorName" property="majorName" />
+        <result column="MajorCode" property="majorCode" />
+    </resultMap>
+	<!-- 获取所有专业 -->
+	<select id="findAllMajor" resultMap="major">
+		select * from table_major
+	</select>
+	
+	<select id="findMajorByMajorCode" parameterType="string" resultType="Major">
+        SELECT * FROM table_major WHERE MajorCode=#{majorCode}
+    </select>
+    
+    <select id="findMajorListByMajorCode" parameterType="string" resultType="Major">
+        SELECT * FROM table_major WHERE MajorCode=#{majorCode}
+    </select>
+    
+    <select id="findMajorByMajorName" parameterType="string" resultType="Major">
+        SELECT * FROM table_major WHERE MajorName=#{majorName}
+    </select>
+    
+    <!-- 查询某个专业 是否被某个用户关注-->
+    <select id="isCollect" parameterType="int" resultType="int">
+        select count(majorId) from table_collect where majorId=#{majorId} and UserId=#{userId}
+    </select>
+    
+    <!-- 关注专业 -->
+	<insert id="collectMajor" parameterType="com.nxist.model.Collect" useGeneratedKeys="true" keyProperty="collectId" keyColumn="CollectId">
+        INSERT INTO table_collect (CollectId,UserId,CollegeId,MajorId,CollectDate)  
+              VALUES (#{collectId},#{userId},#{collegeId},#{majorId},#{collectDate}) 
+	</insert>
+	
+	<!-- 取消关注专业 -->
+    <delete id="cancelCollect" parameterType="int">  
+        DELETE FROM table_collect WHERE UserId=#{userId} and majorId=#{majorId} 
+	</delete> 
+	
+	<!-- 获取记录总数 -->
+    <select id="getMajorSum" parameterType="map" resultType="int">
+        select count(*) from table_major where  1=1 
+        <if test="majorName != null and '' != majorName" >
+        	  and majorName=#{majorName}
+     	</if>
+     	<if test="majorCode != null and '' != majorCode" >
+        	  and majorCode=#{majorCode}
+     	</if>
+    </select>
+    
+    <!-- 院校查询 -->
+    <select id="findAllMajorLimit" parameterType="map" resultType="com.nxist.model.Major">
+        select * from table_major where 1=1 
+        <if test="majorName != null and '' != majorName" >
+        	  and majorName=#{majorName}
+     	</if>
+     	<if test="majorCode != null and '' != majorCode" >
+        	  and majorCode=#{majorCode}
+     	</if> limit #{start},#{limit}
+    </select>
+    
+    <!-- 修改专业门类 -->
+	<update id="updateMajorCategory" parameterType="map" useGeneratedKeys="true" keyProperty="majorId" keyColumn="majorId">
+        update table_major set category=#{category} where majorId=#{majorId}  
+	</update>
+	
+    <!-- 获取用户关注的所有专业 -->
+	<select id="findAllCollectMajor" parameterType="int" resultType="com.nxist.model.Major">
+		select * from table_major where majorId in(select majorId from table_collect where UserId=#{userId})
+	</select>
+	
+	<!-- 查询指定专业的关注日期-->
+    <select id="findCollectDateByMajorId" parameterType="int" resultType="string">
+        select CollectDate from table_collect where majorId=#{majorId} and userId=#{userId}
+    </select>
+</mapper>

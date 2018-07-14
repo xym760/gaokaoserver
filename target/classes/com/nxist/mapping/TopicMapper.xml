@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处namespace需要指定dao接口-->
+<mapper namespace="com.nxist.dao.TopicDao">
+    <!-- 插入不包含图片的话题并返回插入后的话题ID 
+    	useGeneratedKeys：必须设置为true，否则无法获取到主键id。
+		keyProperty：设置为POJO对象的主键id属性名称。
+		keyColumn：设置为数据库记录的主键id字段名称。--> 
+	<insert id="insertTopicWithoutPicture" parameterType="com.nxist.model.Topic" useGeneratedKeys="true" keyProperty="topicId" keyColumn="TopicId">
+        INSERT INTO table_topic (TopicId,UserId,Date,Content,PictureList,Location)  
+              VALUES (#{topicId},#{userId},#{date},#{content},#{pictureList},#{location})  
+	</insert>
+	
+	<select id="findTopicByTopicId" parameterType="int" resultType="com.nxist.model.TopicData">
+        select topic.topicId topicId, user.userId userId,user.userName userName,topic.date date,topic.content content,user.avatar userIcon,
+        topic.pictureList stringPictureList, topic.LikeNumber likeNumber, topic.CommentNumber replyNumber  
+        from table_topic topic,table_user user  
+        where topic.userId = user.userId and topic.topicId=#{topicId};
+    </select>
+	
+	<!-- 查询话题 -->
+	<!-- 模糊查询     ${}符号表示sql使用拼接方式，这样会参数sql注入露点，所以大家要注意 -->
+    <select id="findAllTopic" resultType="com.nxist.model.TopicData">
+        select topic.topicId topicId, user.userId userId,user.userName userName,topic.date date,topic.content content,user.avatar userIcon,
+        topic.pictureList stringPictureList, topic.LikeNumber likeNumber, topic.CommentNumber replyNumber  
+        from table_topic topic,table_user user  
+        where topic.userId = user.userId;
+    </select>
+    
+    <!-- 获取所有话题（有限制） -->
+    <select id="findAllTopicLimit"  parameterType="map" resultType="com.nxist.model.TopicData">
+        select topic.topicId topicId, user.userId userId,user.userName userName,topic.date date,topic.content content,user.avatar userIcon,
+        topic.pictureList stringPictureList, topic.LikeNumber likeNumber, topic.CommentNumber replyNumber  
+        from table_topic topic,table_user user  
+        where topic.userId = user.userId 
+        <if test="userId != null and '' != userId" >
+        	  and topic.UserId=#{userId}
+     	</if>
+     	<if test="startDate != null and '' != startDate" >
+        	  and topic.Date like "%"#{startDate}"%"
+     	</if> limit #{start},#{limit};
+    </select>
+    
+    <!-- 查询某个话题 是否被某个用户点赞-->
+    <select id="isLike" parameterType="int" resultType="int">
+        select count(LikeId) from table_like where TopicId=#{topicId} and UserId=#{userId}
+    </select>
+    
+    <!-- 话题点赞 -->
+	<insert id="likeTopic" parameterType="com.nxist.model.Like" useGeneratedKeys="true" keyProperty="likeId" keyColumn="LikeId">
+        INSERT INTO table_like (LikeId,UserId,TopicId,LikeDate)  
+              VALUES (#{likeId},#{userId},#{topicId},#{likeDate}) 
+	</insert>
+	
+	<!-- 取消话题点赞 -->
+	<delete id="cancelLikeTopic" parameterType="com.nxist.model.Like">  
+        DELETE FROM table_like WHERE userId=#{userId} and topicId=#{topicId}
+	</delete>
+	
+	<!-- 统计话题点赞数 -->
+	<select id="countToicLike" parameterType="int" resultType="int">
+        select count(LikeId) from table_like where TopicId=#{topicId}
+    </select>
+    
+    <!-- 修改某条话题的点赞数 -->
+    <update id="updateLikeNumber" parameterType="int" useGeneratedKeys="true" keyProperty="likeId" keyColumn="LikeId">
+        update table_topic set LikeNumber=#{likeNumber} where TopicId=#{topicId}  
+	</update>
+	
+	<!-- 话题回复 -->
+	<insert id="replyTopic" parameterType="com.nxist.model.Reply" useGeneratedKeys="true" keyProperty="replyId" keyColumn="ReplyId">
+        INSERT INTO table_reply (ReplyId,TopicId,UserId,ReplyContent,ReplyDate)  
+              VALUES (#{replyId},#{topicId},#{userId},#{replyContent},#{replyDate}) 
+	</insert>
+	
+	<!-- 统计话题回复数 -->
+	<select id="countToicReply" parameterType="int" resultType="int">
+        select count(ReplyId) from table_reply where TopicId=#{topicId}
+    </select>
+    
+    <!-- 修改某条话题的回复数 -->
+    <update id="updateRePlyNumber" parameterType="int" useGeneratedKeys="true" keyProperty="replyId" keyColumn="ReplyId">
+        update table_topic set CommentNumber=#{replyNumber} where TopicId=#{topicId}  
+	</update>
+	
+	<!-- 获取记录总数 -->
+    <select id="getTopicSum" parameterType="map" resultType="int">
+        select count(*) from table_topic  where  1=1 
+        <if test="userId != null and '' != userId" >
+        	  and UserId=#{userId}
+     	</if>
+     	<if test="startDate != null and '' != startDate" >
+        	  and Date like "%"#{startDate}"%"
+     	</if>
+    </select>
+    
+    <!-- 查看话题Id查看该话题的所有回复 -->
+    <select id="getReplyByTopicId" parameterType="int" resultType="com.nxist.model.Reply">
+        select * from table_reply  where topicId=#{topicId}
+    </select>
+    
+    <!-- 删除话题通过topicId -->
+	<delete id="deleteTopic" parameterType="int">  
+        DELETE FROM table_topic WHERE topicId=#{topicId}
+	</delete>
+	
+	<!-- 删除话题评论通过topicId -->
+	<delete id="deleteTopicReplyByTopicId" parameterType="int">  
+        DELETE FROM table_reply WHERE topicId=#{topicId}
+	</delete>
+	
+	<!-- 删除话题点赞通过topicId -->
+	<delete id="deleteTopicLikeByTopicId" parameterType="int">  
+        DELETE FROM table_like WHERE topicId=#{topicId}
+	</delete>
+</mapper>

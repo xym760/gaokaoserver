@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处namespace需要指定dao接口-->
+<mapper namespace="com.nxist.dao.ProvinceDao">
+	<!--配置一个resultMap 指定返回的类型 -->
+    <resultMap id="province" type="Province">
+        <id column="provinceId" property="provinceId" />
+        <result column="provinceName" property="provinceName" />
+    </resultMap>
+	<!-- 获取所有专业 -->
+	<select id="getProvinceList" resultMap="province">
+		select * from table_province
+	</select>
+</mapper>

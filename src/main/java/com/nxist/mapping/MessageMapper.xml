@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 此处namespace需要指定dao接口-->
+<mapper namespace="com.nxist.dao.MessageDao">
+
+	<!-- 消息查询 -->
+	<!-- 模糊查询     ${}符号表示sql使用拼接方式，这样会参数sql注入露点 -->
+    <select id="findAllMessage" resultType="com.nxist.model.Message">
+        select * from table_message;
+    </select>
+    
+    <!-- 插入不包含图片的消息并返回插入后的话题ID 
+    	useGeneratedKeys：必须设置为true，否则无法获取到主键id。
+		keyProperty：设置为POJO对象的主键id属性名称。
+		keyColumn：设置为数据库记录的主键id字段名称。--> 
+	<insert id="insertMessageWithoutPicture" parameterType="com.nxist.model.Message" useGeneratedKeys="true" keyProperty="messageId" keyColumn="messageId">
+        INSERT INTO table_message (messageId,title,picture,content,messageDate)  
+              VALUES (#{messageId},#{title},#{picture},#{content},#{messageDate})
+	</insert>
+	
+	<!-- 删除消息 -->
+    <delete id="deleteMessage" parameterType="int">  
+        DELETE FROM table_message WHERE messageId=#{messageId} 
+	</delete>
+	
+	<!-- 根据messageId查询某条消息 -->
+    <select id="findMessageByMessageId" parameterType="int" resultType="com.nxist.model.Message">
+        select * from table_message where messageId=#{messageId} 
+    </select>
+    
+    <!-- 修改信息 -->
+	<update id="updateMessageWithoutPicture" parameterType="com.nxist.model.Message" useGeneratedKeys="true" keyProperty="messageId" keyColumn="messageId">
+        update table_message set messageId=#{messageId},title=#{title}, 
+        picture=#{picture},content=#{content},messageDate=#{messageDate} where messageId=#{messageId}  
+	</update>
+    
+</mapper>

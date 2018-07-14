@@ -1,0 +1,11 @@
+@charset "utf-8";
+/* CSS Document */
+td{
+	padding:5px;
+}
+tr:hover{
+	 background:#6ae6e6;
+}
+a{
+	text-decoration:none;
+}

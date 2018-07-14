@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nxist.dao.UserDao">
+
+	<!-- 查找用户通过账户 --> 
+    <select id="findByUserAccount" parameterType="string" resultType="User">
+        SELECT * FROM table_user WHERE useraccount=#{userAccount}
+    </select>
+    
+    <!-- 查找用户通过用户名 --> 
+    <select id="findUserByUserName" parameterType="string" resultType="User">
+        SELECT * FROM table_user WHERE UserName=#{userName}
+    </select>
+    
+    <!-- 通过用户Id查找用户 --> 
+    <select id="findUserByUserId" parameterType="int" resultType="User">
+        SELECT * FROM table_user WHERE userId=#{userId}
+    </select>
+    
+    <!-- 插入用户并返回插入后的用户ID 
+    	useGeneratedKeys：必须设置为true，否则无法获取到主键id。
+		keyProperty：设置为POJO对象的主键id属性名称。
+		keyColumn：设置为数据库记录的主键id字段名称。--> 
+    <insert id="insertUser" parameterType="com.nxist.model.User" useGeneratedKeys="true" keyProperty="userId" keyColumn="UserId">
+        INSERT INTO table_user (UserId,UserAccount,UserName,Password,Subject,Province,Score,Avatar)  
+              VALUES (#{userId},#{userAccount},#{userName},#{password},#{subject},#{province},#{score},#{avatar})  
+	</insert>
+	
+	<!-- 修改用户信息 -->
+	<update id="updateUser" parameterType="com.nxist.model.User" useGeneratedKeys="true" keyProperty="userId" keyColumn="UserId">
+        update table_user set UserName=#{userName},Password=#{password}, 
+        Subject=#{subject},Province=#{province},Score=#{score},Avatar=#{avatar} where UserAccount=#{userAccount}  
+	</update>
+	
+	<!-- 通过用户Id查找用户名 --> 
+    <select id="findUserNameByUserId" parameterType="int" resultType="String">
+        SELECT userName FROM table_user WHERE userId=#{userId}
+    </select>
+    
+    <!-- 修改数据库中用户头像文件名 -->
+	<update id="updateAvatar" parameterType="com.nxist.model.User" useGeneratedKeys="true" keyProperty="userId" keyColumn="userId">
+        update table_user set avatar=#{avatar} where userId=#{userId}  
+	</update>
+	
+</mapper>
